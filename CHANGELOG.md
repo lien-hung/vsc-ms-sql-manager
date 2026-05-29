@@ -5,6 +5,20 @@ All notable changes to the MS SQL Manager extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.12] - 2026-05-29
+
+### Fixed
+
+- **SQL Editor — Unsaved changes detection (dirty state) now works for `.sql` files**
+  - Editing SQL content in the custom SQL Editor webview did not mark the underlying document as modified, so VS Code never showed the "Do you want to save changes?" dialog when closing a file with unsaved edits.
+  - Root cause: the React webview sends a `contentChanged` message when the Monaco editor content changes, but the extension host only handled the `documentChanged` message type — the content change was silently dropped and the `TextDocument` was never updated.
+  - Fix: added `onChange` handler to the Monaco editor component that posts `contentChanged` to the extension on every edit, and added `contentChanged` as a recognized message type in the extension host (both file-backed and untitled query paths).
+  - Added echo-suppression guard to prevent the `onDidChangeTextDocument` → `update` round-trip from bouncing content back to the webview after each keystroke.
+
+- **SQL Editor — "Webview is disposed" error on close**
+  - Closing a SQL Editor tab could throw `Error: Webview is disposed` when a pending document-change event tried to post a message to the already-disposed webview.
+  - Added a disposed-webview guard in the `onDidChangeTextDocument` listener to silently skip the update when the webview is no longer alive.
+
 ## [0.19.11] - 2026-05-29
 
 ### Removed

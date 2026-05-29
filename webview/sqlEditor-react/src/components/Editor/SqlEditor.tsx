@@ -417,6 +417,14 @@ export const SqlEditor = forwardRef<SqlEditorHandle, SqlEditorProps>(
       }
     }, [initialValue, editorReady]);
 
+    // Notify extension host when editor content changes so the underlying
+    // TextDocument is updated and VS Code can track dirty state.
+    const handleEditorChange = useCallback((value: string | undefined) => {
+      if (value !== undefined) {
+        postMessage({ type: 'contentChanged', content: value });
+      }
+    }, [postMessage]);
+
     return (
       <div className="sql-editor-container">
         <MonacoEditor
@@ -426,6 +434,7 @@ export const SqlEditor = forwardRef<SqlEditorHandle, SqlEditorProps>(
           defaultValue={initialValue}
           beforeMount={handleEditorWillMount}
           onMount={handleEditorMount}
+          onChange={handleEditorChange}
           options={{
             automaticLayout: true,
             fixedOverflowWidgets: true,

@@ -53,9 +53,22 @@ export class SqlEditorProvider implements vscode.CustomTextEditorProvider {
         // Track webview to document mapping
         this.webviewToDocument.set(webviewPanel.webview, document.uri);
 
-        // Update webview content when document changes
+        // Guard flag to prevent echo-back: when the webview sends a content change,
+        // we apply it to the document, which triggers onDidChangeTextDocument;
+        // without this flag that would send 'update' back to the webview causing
+        // unnecessary round-trips and potential cursor jumps.
+        let suppressNextUpdate = false;
+
+        // Update webview content when document changes (external edits, not webview-originated)
         const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(e => {
             if (e.document.uri.toString() === document.uri.toString()) {
+                if (suppressNextUpdate) {
+                    suppressNextUpdate = false;
+                    return;
+                }
+                if (this.disposedWebviews.has(webviewPanel.webview)) {
+                    return;
+                }
                 webviewPanel.webview.postMessage({
                     type: 'update',
                     content: document.getText()
@@ -117,8 +130,10 @@ export class SqlEditorProvider implements vscode.CustomTextEditorProvider {
                     // to give explicit control over when queries execute
                     break;
 
+                case 'contentChanged':
                 case 'documentChanged':
                     // Update the document when the webview content changes
+                    suppressNextUpdate = true;
                     const edit = new vscode.WorkspaceEdit();
                     edit.replace(
                         document.uri,
@@ -2110,6 +2125,7 @@ COMMIT TRANSACTION;
                     }
                     break;
 
+                case 'contentChanged':
                 case 'documentChanged':
                     currentContent = message.content;
                     // Update state for persistence

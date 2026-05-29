@@ -5,6 +5,17 @@ All notable changes to the MS SQL Manager extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.13] - 2026-05-29
+
+### Changed
+
+- **New Query — Now prompts to save unsaved changes on close**
+  - "New Query" (untitled queries) now open as VS Code untitled documents through the custom SQL editor, instead of raw webview panels.
+  - Closing an untitled query that has been edited now shows VS Code's native "Do you want to save the changes?" dialog with Save / Don't Save / Cancel options.
+  - Save triggers a Save As dialog to pick a `.sql` file location, then continues editing in the custom editor.
+  - Empty untitled queries (no content typed) can still be closed without a prompt.
+  - Auto-execute and query history info are preserved when opening untitled queries from tree commands.
+
 ## [0.19.12] - 2026-05-29
 
 ### Fixed

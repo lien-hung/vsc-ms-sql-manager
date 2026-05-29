@@ -22,6 +22,10 @@ export class SqlEditorProvider implements vscode.CustomTextEditorProvider {
     private sqlSnippets: any[] = [];
     // Schema cache instance
     private schemaCache: SchemaCache;
+    // Pending options for the next resolveCustomTextEditor call (auto-execute, history info)
+    private pendingEditorOptions: { autoExecute?: boolean; historyInfo?: Record<string, unknown> } | null = null;
+    // Counter for unique untitled query names
+    private untitledCounter = 0;
 
     constructor(
         private readonly context: vscode.ExtensionContext,
@@ -126,8 +130,22 @@ export class SqlEditorProvider implements vscode.CustomTextEditorProvider {
                     // Send initial connections list
                     this.updateConnectionsList(webviewPanel.webview);
                     
-                    // Note: Auto-execute is now controlled by the newQuery command via triggerAutoExecute()
-                    // to give explicit control over when queries execute
+                    // Handle pending options (auto-execute, history info) for untitled queries
+                    // opened via openUntitledQuery → CustomTextEditorProvider path
+                    if (this.pendingEditorOptions) {
+                        const opts = this.pendingEditorOptions;
+                        this.pendingEditorOptions = null;
+
+                        if (opts.historyInfo) {
+                            webviewPanel.webview.postMessage({ type: 'historyInfo', ...opts.historyInfo });
+                        }
+
+                        if (opts.autoExecute && document.getText().trim()) {
+                            setTimeout(() => {
+                                webviewPanel.webview.postMessage({ type: 'autoExecuteQuery' });
+                            }, 200);
+                        }
+                    }
                     break;
 
                 case 'contentChanged':
@@ -1946,9 +1964,9 @@ COMMIT TRANSACTION;
     }
 
     /**
-     * Open an untitled SQL query webview panel (not backed by a file).
-     * When the user presses Ctrl+S the content is saved to a .sql file and
-     * re-opened in the normal CustomTextEditor.
+     * Open an untitled SQL query in the custom text editor.
+     * Uses VS Code's native untitled document support for proper dirty-state
+     * tracking and save prompts on close.
      */
     public async openUntitledQuery(
         connectionId: string,
@@ -1956,61 +1974,43 @@ COMMIT TRANSACTION;
         initialQuery?: string,
         autoExecute: boolean = false,
         historyInfo?: Record<string, unknown>
-    ): Promise<vscode.WebviewPanel> {
-        // Get connection config to determine base title
+    ): Promise<vscode.WebviewPanel | undefined> {
+        // Store connection preference so resolveCustomTextEditor picks it up
+        this.connectionProvider.setNextEditorPreferredDatabase(connectionId, databaseName || 'master');
+
+        // Store auto-execute and history info for the pending resolveCustomTextEditor call
+        if (autoExecute || historyInfo) {
+            this.pendingEditorOptions = { autoExecute, historyInfo };
+        }
+
+        // Build a meaningful title based on connection/database
         const config = this.connectionProvider.getConnectionConfig(connectionId);
         let baseTitle = 'Query';
         if (config) {
             if (config.connectionType === 'database') {
-                // Database connection - use connection name
                 baseTitle = `Query - ${config.name}`;
             } else {
-                // Server connection - use database name
                 baseTitle = databaseName ? `Query - ${databaseName}` : `Query - ${config.name}`;
             }
         }
 
-        // Find unique title (adds counter if needed)
-        const uniqueTitle = this.getUniqueUntitledTitle(baseTitle);
-        
-        const panel = vscode.window.createWebviewPanel(
-            'mssqlManager.sqlEditorUntitled',
-            uniqueTitle,
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [
-                    vscode.Uri.joinPath(this.context.extensionUri, 'webview'),
-                    vscode.Uri.joinPath(this.context.extensionUri, 'resources')
-                ]
-            }
-        );
+        // Create an untitled document with a named URI for a meaningful tab title
+        this.untitledCounter++;
+        const untitledUri = vscode.Uri.parse(`untitled:${baseTitle}${this.untitledCounter > 1 ? ` (${this.untitledCounter})` : ''}.sql`);
+        const doc = await vscode.workspace.openTextDocument(untitledUri);
 
-        // Set icon with light/dark theme variants
-        panel.iconPath = {
-            light: vscode.Uri.joinPath(this.context.extensionUri, 'resources', 'icons', 'database-light.svg'),
-            dark: vscode.Uri.joinPath(this.context.extensionUri, 'resources', 'icons', 'database-dark.svg')
-        };
+        // Set initial content if provided
+        if (initialQuery) {
+            const edit = new vscode.WorkspaceEdit();
+            edit.insert(doc.uri, new vscode.Position(0, 0), initialQuery);
+            await vscode.workspace.applyEdit(edit);
+        }
 
-        // Track this panel for unique title management
-        this.untitledPanels.set(panel, baseTitle);
+        // Open it with our custom SQL editor
+        await vscode.commands.executeCommand('vscode.openWith', doc.uri, SqlEditorProvider.viewType);
 
-        // In-memory content buffer
-        let currentContent = initialQuery || '';
-        const compositeId = databaseName ? `${connectionId}::${databaseName}` : connectionId;
-
-        // Track this webview like a regular editor
-        const syntheticUri = vscode.Uri.parse(`untitled:query-${Date.now()}`);
-        this.webviewToDocument.set(panel.webview, syntheticUri);
-        this.webviewSelectedConnection.set(panel.webview, compositeId);
-
-        panel.webview.html = this.getReactHtmlForWebview(panel.webview);
-
-        // Setup state for serialization/restoration
-        this.setupUntitledPanelHandlers(panel, connectionId, databaseName, initialQuery || '', autoExecute, historyInfo);
-        
-        return panel;
+        this.outputChannel.appendLine(`[SqlEditorProvider] Opened untitled query via CustomTextEditor for ${connectionId}::${databaseName || 'master'}`);
+        return undefined;
     }
 
     /**

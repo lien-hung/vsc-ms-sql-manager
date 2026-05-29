@@ -331,6 +331,7 @@ export interface Connection {
   name?: string;
   server: string;
   connectionType: 'server' | 'database';
+  color?: string;
 }
 
 export interface QueryMessage {

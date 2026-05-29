@@ -54,3 +54,25 @@
   font-size: 12px;
   margin-left: auto;
 }
+
+/* When toolbar has a custom connection color */
+.toolbar-colored .toolbar-button.secondary {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.toolbar-colored .toolbar-button.secondary:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.toolbar-colored .dropdown-trigger:hover,
+.toolbar-colored .dropdown-trigger:focus {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.toolbar-colored .toolbar-separator {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.toolbar-colored #statusLabel {
+  color: rgba(255, 255, 255, 0.85);
+}

@@ -5,6 +5,22 @@ All notable changes to the MS SQL Manager extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0] - 2026-05-29
+
+### Added
+
+- **Connection Toolbar Color — Visual connection identification**
+  - New optional **Toolbar Color** setting in the connection form allows assigning a custom color to each connection.
+  - When a colored connection is active, the SQL Editor toolbar displays a colored top border, making it easy to visually distinguish between environments (e.g. red for production, green for dev).
+  - Color picker with hex input and enable/disable checkbox in the connection dialog.
+  - Default behavior unchanged — connections without a color use the standard VS Code theme toolbar appearance.
+  - Color persists with the connection configuration and is restored when editing an existing connection.
+
+### Tests
+
+- Added **8** unit tests for Toolbar connection color rendering: no color (default), custom color applied, null connection, multiple connections, connection without color, status labels.
+- Added **8** unit tests for ConnectionConfig color field: serialization, undefined handling, webview mapping, save/load logic.
+
 ## [0.19.13] - 2026-05-29
 
 ### Changed

@@ -61,6 +61,7 @@ export interface ConnectionConfig {
     lastConnected?: string; // ISO date string of last successful connection
     azureAuthMethod?: 'browser' | 'deviceCode'; // Entra ID auth method: interactive browser or device code flow
     tenantId?: string; // Azure/Entra ID tenant ID (or 'common' / 'organizations')
+    color?: string; // Custom toolbar color for visual connection identification
 }
 
 export class ConnectionProvider {

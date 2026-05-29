@@ -1042,7 +1042,8 @@ export class SqlEditorProvider implements vscode.CustomTextEditorProvider {
             server: conn.config.server,
             database: conn.config.database,
             connectionType: conn.config.connectionType,
-            authType: conn.config.authType
+            authType: conn.config.authType,
+            color: conn.config.color
         }));
 
         // Prefer the webview's last selected connection, then active connection, then first active connection

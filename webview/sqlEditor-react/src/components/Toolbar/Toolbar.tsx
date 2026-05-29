@@ -1,3 +1,4 @@
+import { type CSSProperties } from 'react';
 import { useVSCode } from '../../context/VSCodeContext';
 import { ExecuteButton } from './ExecuteButton';
 import { ConnectionDropdown } from './ConnectionDropdown';
@@ -26,10 +27,20 @@ export function Toolbar({
     isConnected,
     cancelQuery,
     manageConnections,
+    connections,
+    currentConnectionId,
   } = useVSCode();
 
+  // Determine toolbar color from active connection
+  const currentConnection = connections.find(c => c.id === currentConnectionId);
+  const toolbarColor = currentConnection?.color || undefined;
+
+  const toolbarStyle: CSSProperties = toolbarColor
+    ? { backgroundColor: toolbarColor }
+    : {};
+
   return (
-    <div id="toolbar">
+    <div id="toolbar" style={toolbarStyle} className={toolbarColor ? 'toolbar-colored' : ''}>
       {/* Execute Button with dropdown */}
       <ExecuteButton
         onExecute={onExecute}

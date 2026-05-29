@@ -211,7 +211,8 @@ export class ConnectionWebview {
                 useConnectionString: config.useConnectionString || false,
                 serverGroupId: config.serverGroupId,
                 azureAuthMethod: config.authType === 'azure' ? (config.azureAuthMethod || 'browser') : undefined,
-                tenantId: config.authType === 'azure' ? (config.tenantId || undefined) : undefined
+                tenantId: config.authType === 'azure' ? (config.tenantId || undefined) : undefined,
+                color: config.color || undefined
             };
 
             this.onConnectionCreated(connectionConfig);
@@ -354,6 +355,68 @@ export class ConnectionWebview {
 
         .hidden {
             display: none;
+        }
+
+        .color-picker-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--vscode-input-border);
+        }
+
+        .color-picker-row {
+            margin-bottom: 10px;
+        }
+
+        .color-picker-row label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .color-picker-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-picker-controls input[type="color"] {
+            width: 40px;
+            height: 34px;
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 2px;
+            background: transparent;
+        }
+
+        .color-hex-input {
+            width: 80px;
+            padding: 6px 10px;
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            border: 1px solid var(--vscode-input-border);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: var(--vscode-font-size);
+        }
+
+        .clear-color-btn {
+            background: transparent;
+            border: 1px solid var(--vscode-input-border);
+            color: var(--vscode-foreground);
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            min-width: auto;
+        }
+
+        .clear-color-btn:hover {
+            background-color: var(--vscode-inputValidation-errorBackground, rgba(255, 0, 0, 0.1));
+        }
+
+        .color-picker-section .checkbox-group {
+            margin-bottom: 10px;
         }
 
         .button-group {
@@ -742,6 +805,22 @@ export class ConnectionWebview {
 
             <div class="message hidden" id="message"></div>
 
+            <div class="color-picker-section">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="enableConnectionColor">
+                    <label for="enableConnectionColor">Enable toolbar color for this connection</label>
+                </div>
+                <div class="color-picker-row hidden" id="colorPickerRow">
+                    <label for="connectionColor">Toolbar Color</label>
+                    <div class="color-picker-controls">
+                        <input type="color" id="connectionColor" value="#007acc">
+                        <input type="text" id="connectionColorHex" class="color-hex-input" placeholder="#007acc" maxlength="7">
+                        <button type="button" class="clear-color-btn" id="clearColorBtn" title="Remove color">✕</button>
+                    </div>
+                    <span class="help-text">Color the SQL editor toolbar border to identify this connection visually</span>
+                </div>
+            </div>
+
             <div class="button-group">
                 <button type="button" class="secondary-button" id="cancelBtn">Cancel</button>
                 <button type="button" class="test-button" id="testBtn">Test Connection</button>
@@ -775,6 +854,51 @@ export class ConnectionWebview {
         const eyeIcon = document.getElementById('eyeIcon');
         const eyeOffIcon = document.getElementById('eyeOffIcon');
         const databaseField = document.getElementById('database');
+
+        // Color picker elements
+        const connectionColorInput = document.getElementById('connectionColor');
+        const connectionColorHex = document.getElementById('connectionColorHex');
+        const clearColorBtn = document.getElementById('clearColorBtn');
+        const enableConnectionColor = document.getElementById('enableConnectionColor');
+        const colorPickerRow = document.getElementById('colorPickerRow');
+
+        // Color picker logic
+        function setColorValue(color) {
+            connectionColorInput.value = color || '#007acc';
+            connectionColorHex.value = color || '';
+        }
+
+        function toggleColorPicker(show) {
+            if (show) {
+                colorPickerRow.classList.remove('hidden');
+            } else {
+                colorPickerRow.classList.add('hidden');
+            }
+        }
+
+        enableConnectionColor.addEventListener('change', function() {
+            toggleColorPicker(this.checked);
+            if (!this.checked) {
+                setColorValue('');
+            }
+        });
+
+        connectionColorInput.addEventListener('input', function() {
+            connectionColorHex.value = this.value;
+        });
+
+        connectionColorHex.addEventListener('input', function() {
+            const val = this.value.trim();
+            if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+                connectionColorInput.value = val;
+            }
+        });
+
+        clearColorBtn.addEventListener('click', function() {
+            enableConnectionColor.checked = false;
+            toggleColorPicker(false);
+            setColorValue('');
+        });
 
         // Toggle password visibility
         passwordToggle.addEventListener('click', function() {
@@ -1120,7 +1244,8 @@ export class ConnectionWebview {
                 username: document.getElementById('username').value.trim() || null,
                 password: document.getElementById('password').value || null,
                 encrypt: document.getElementById('encrypt').checked,
-                trustServerCertificate: document.getElementById('trustServerCertificate').checked
+                trustServerCertificate: document.getElementById('trustServerCertificate').checked,
+                color: enableConnectionColor.checked ? connectionColorInput.value : null
             };
             
             console.log('[ConnectionWebview] Complete form data:', formData);
@@ -1164,6 +1289,17 @@ export class ConnectionWebview {
                 }
                 authTypeSelect.dispatchEvent(new Event('change'));
                 connectionTypeSelect.dispatchEvent(new Event('change'));
+
+                // Load color setting
+                if (config.color) {
+                    enableConnectionColor.checked = true;
+                    toggleColorPicker(true);
+                    setColorValue(config.color);
+                } else {
+                    enableConnectionColor.checked = false;
+                    toggleColorPicker(false);
+                    setColorValue('');
+                }
             }
         }
 

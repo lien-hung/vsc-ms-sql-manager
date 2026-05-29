@@ -2,7 +2,7 @@
   "name": "ms-sql-manager",
   "displayName": "MS SQL Manager",
   "description": "Manage Microsoft SQL Server databases with connection management, schema browsing, and query execution.",
-  "version": "0.19.10",
+  "version": "0.19.11",
   "publisher": "jakubkozera",
   "icon": "ms-sql-manager.png",
   "sponsor": {
@@ -688,13 +688,7 @@
           "group": "1_row@3"
         }
       ],
-      "editor/title": [
-        {
-          "command": "mssqlManager.executeQuery",
-          "when": "resourceLangId == sql",
-          "group": "navigation"
-        }
-      ],
+      "editor/title": [],
       "editor/context": [
         {
           "command": "mssqlManager.executeQuery",

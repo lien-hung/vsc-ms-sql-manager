@@ -5,6 +5,14 @@ All notable changes to the MS SQL Manager extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.11] - 2026-05-29
+
+### Removed
+
+- **SQL Editor — "Execute Query" icon button removed from editor title bar**
+  - The `mssqlManager.executeQuery` icon button that appeared in the VS Code editor title bar when a `.sql` file was open has been removed.
+  - SQL files open in the custom SQL Editor webview which has its own Run button — the title bar button was redundant and non-functional for the custom editor.
+
 ## [0.19.10] - 2026-05-08
 
 ### Fixed

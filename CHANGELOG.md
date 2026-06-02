@@ -5,6 +5,16 @@ All notable changes to the MS SQL Manager extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0] - 2026-06-02
+
+### Fixed
+
+Commitng pending changes now works when clicking the Save icon in the editor title bar.
+
+### Adjusted
+
+Updating `bit` values now uses a checkbox in the UI instead of displaying true/false text.
+
 ## [0.20.0] - 2026-05-29
 
 ### Added

@@ -26,7 +26,6 @@ export function useEditorSetup(
       // Configure editor options
       editor.updateOptions({
         fontSize: 14,
-        fontFamily: "'Cascadia Code', 'Fira Code', Consolas, monospace",
         fontLigatures: true,
         minimap: { enabled: false },
         scrollBeyondLastLine: false,
@@ -41,6 +40,7 @@ export function useEditorSetup(
           verticalScrollbarSize: 10,
           horizontalScrollbarSize: 10,
         },
+        useShadowDOM: false,
       });
 
       // Register formatting providers

@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef } from 'react';
+import { useMemo, useEffect, useRef, useState } from 'react';
 import MonacoEditor, { OnMount } from '@monaco-editor/react';
 import { format } from 'sql-formatter';
 import type { ExtensionSettings } from '../types';
@@ -49,6 +49,11 @@ function getTheme(): 'vs' | 'vs-dark' | 'hc-black' | 'hc-light' {
 
 export function FormatPreview({ settings }: FormatPreviewProps) {
   const editorRef = useRef<import('monaco-editor').editor.IStandaloneCodeEditor | null>(null);
+  const [monacoTheme, setMonacoTheme] = useState<string>(() => getTheme());
+  const editorFontFamily = useMemo(() => {
+    const value = getComputedStyle(document.documentElement).getPropertyValue('--vscode-editor-font-family').trim();
+    return value || "'Cascadia Code', 'Fira Code', Consolas, monospace";
+  }, []);
 
   const formatted = useMemo(() => {
     try {
@@ -76,6 +81,15 @@ export function FormatPreview({ settings }: FormatPreviewProps) {
   ]);
 
   useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const newTheme = getTheme();
+      setMonacoTheme(newTheme);
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     editorRef.current?.setValue(formatted);
   }, [formatted]);
 
@@ -92,11 +106,12 @@ export function FormatPreview({ settings }: FormatPreviewProps) {
         <MonacoEditor
           defaultLanguage="sql"
           defaultValue={formatted}
-          theme={getTheme()}
+          theme={monacoTheme}
           options={{
             readOnly: true,
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
+            fontFamily: editorFontFamily,
             fontSize: 13,
             lineNumbers: 'on',
             folding: false,

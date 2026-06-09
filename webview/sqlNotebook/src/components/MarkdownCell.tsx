@@ -107,6 +107,30 @@ const MarkdownCell: React.FC<MarkdownCellProps> = ({
   const [editedSource, setEditedSource] = useState(initialSource);
   const sourceRef = useRef(initialSource);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const editorFontFamily = useMemo(() => {
+    const value = getComputedStyle(document.documentElement).getPropertyValue('--vscode-editor-font-family').trim();
+    return value || "'Cascadia Code', 'Fira Code', Consolas, monospace";
+  }, []);
+
+  const getTheme = (): 'vs' | 'vs-dark' | 'hc-black' | 'hc-light' => {
+    const { classList } = document.body;
+    if (classList.contains('vscode-high-contrast-light')) return 'hc-light';
+    if (classList.contains('vscode-high-contrast')) return 'hc-black';
+    if (classList.contains('vscode-light')) return 'vs';
+    return 'vs-dark';
+  }
+
+  const [monacoTheme, setMonacoTheme] = useState<string>(() => getTheme());
+
+  // Watch for VS Code theme changes via MutationObserver on body class
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const newTheme = getTheme();
+      setMonacoTheme(newTheme);
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   // Sync when cell source changes externally
   useEffect(() => {
@@ -167,7 +191,7 @@ const MarkdownCell: React.FC<MarkdownCellProps> = ({
             height="100%"
             language="markdown"
             value={editedSource}
-            theme="vs-dark"
+            theme={monacoTheme}
             onChange={handleSourceChange}
             options={{
               minimap: { enabled: false },
@@ -188,6 +212,7 @@ const MarkdownCell: React.FC<MarkdownCellProps> = ({
               contextmenu: false,
               folding: false,
               glyphMargin: false,
+              fontFamily: editorFontFamily,
             }}
           />
         </div>
@@ -247,6 +272,7 @@ const MarkdownCell: React.FC<MarkdownCellProps> = ({
                     handleMouseWheel: false,
                   },
                   padding: { top: 6, bottom: 6 },
+                  fontFamily: editorFontFamily,
                 }}
               />
             </div>

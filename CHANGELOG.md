@@ -5,6 +5,19 @@ All notable changes to the MS SQL Manager extension will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.4] - 2026-07-03
+
+### Fixed
+
+- **SQL Editor React — edited and deleted row highlights now survive sorting**
+  - The result grid now preserves pending edit and delete styling after sorting, so modified cells and deleted rows stay visually marked even when the row order changes.
+
+### Changed
+
+- **Theme-aware result grid and tooltip styling**
+  - Updated the quick-save tooltip and related result-tab UI to use VS Code theme colors and the editor font family for better consistency across light, dark, and high-contrast themes.
+  - Refined connection webview, editor, filter, dropdown, checkbox, and result-tab styling to better blend with the active theme.
+
 ## [0.20.3] - 2026-06-09
 
 ### Fixed

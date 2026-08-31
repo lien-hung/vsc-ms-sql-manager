@@ -1,4 +1,3 @@
-import * as os from 'os';
 import * as vscode from 'vscode';
 
 // Lightweight abstraction over two strategies:

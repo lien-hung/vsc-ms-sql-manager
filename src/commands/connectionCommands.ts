@@ -480,7 +480,6 @@ export function registerConnectionCommands(
             }
 
             // Use require to load the module
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const { DatabaseFilterWebview } = require('../databaseFilterWebview');
             
             const existingFilter = connectionProvider.getDatabaseFilter(connectionId);
@@ -520,7 +519,6 @@ export function registerConnectionCommands(
             }
 
             // Use require to load the module
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const { TableFilterWebview } = require('../tableFilterWebview');
             
             const existingFilter = connectionProvider.getTableFilter(connectionId, database);

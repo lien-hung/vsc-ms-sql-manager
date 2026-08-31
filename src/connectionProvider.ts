@@ -219,7 +219,6 @@ export class ConnectionProvider {
     async connectWithWebview(preSelectedServerGroupId?: string): Promise<void> {
         // Use require here so webpack can resolve the TS module during bundling
         // and avoid runtime import extension issues with node16 resolution.
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { ConnectionWebview } = require('./connectionWebview');
         const connectionWebview = new ConnectionWebview(this.context, (config: any) => {
             this.handleWebviewConnection(config);
@@ -1033,7 +1032,6 @@ export class ConnectionProvider {
         const completeConfig = await this.getCompleteConnectionConfig(connection);
         
         // Open webview with existing config for editing
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { ConnectionWebview } = require('./connectionWebview');
         const connectionWebview = new ConnectionWebview(this.context, (config: any) => {
             this.handleWebviewConnection(config);
